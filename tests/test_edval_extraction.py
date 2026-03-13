@@ -1,17 +1,14 @@
-import pytest
 from io import BytesIO
-import pandas as pd
 
+import pandas as pd
+import pytest
+from docling.datamodel.base_models import DocumentStream
 from docling.datamodel.document import ConversionResult
-from docling.datamodel.base_models import InputFormat, DocumentStream
 from docling_core.types.doc.document import (
     DoclingDocument,
-    TextItem,
     SectionHeaderItem,
     TableItem,
-    TableData,
-    TableCell,
-    BoundingBox,
+    TextItem,
 )
 from docling_core.types.doc.labels import DocItemLabel
 
@@ -49,7 +46,7 @@ def mock_conversion_result(monkeypatch):
     doc.body.children.append(h1)
     doc.body.children.append(make_text("Here is an overview of Node One."))
 
-    table_item = TableItem.model_construct(self_ref=f"#/tables/1", label=DocItemLabel.TABLE)
+    table_item = TableItem.model_construct(self_ref="#/tables/1", label=DocItemLabel.TABLE)
     doc.body.children.append(table_item)
     doc.body.children.append(make_text("These are notes after the table for Node One."))
 
@@ -64,10 +61,10 @@ def mock_conversion_result(monkeypatch):
     doc.body.children.append(h2)
     doc.body.children.append(make_text("Overview for Node Two."))
 
-    table_item_1 = TableItem.model_construct(self_ref=f"#/tables/2", label=DocItemLabel.TABLE)
+    table_item_1 = TableItem.model_construct(self_ref="#/tables/2", label=DocItemLabel.TABLE)
     doc.body.children.append(table_item_1)
 
-    table_item_2 = TableItem.model_construct(self_ref=f"#/tables/3", label=DocItemLabel.TABLE)
+    table_item_2 = TableItem.model_construct(self_ref="#/tables/3", label=DocItemLabel.TABLE)
     doc.body.children.append(table_item_2)
     doc.body.children.append(
         make_text(
@@ -156,5 +153,6 @@ def test_edval_postprocessor_phase_segregation(mock_conversion_result):
     assert node_two["rules_table"][0]["Rule"] == "Rule A part 1 Rule A part 2"
 
     # Assert License extraction (regex fallback parsing)
-    assert node_two["separately_licensed"] is True
-    assert node_two["licensed_functionality"] == "Validate Host Bank and Risk Book Selection at Circle Level"
+    assert len(node_two["licensed_functionality"]) == 1
+    assert node_two["licensed_functionality"][0]["name"] == "Validate Host Bank and Risk Book Selection at Circle Level"
+    assert node_two["licensed_functionality"][0]["description"] == "This enhancement restricts users..."

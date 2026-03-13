@@ -85,8 +85,7 @@ class EdvalPostprocessor:
                 "overview": "",
                 "notes": "",
                 "has_rules_table_passed": False,
-                "separately_licensed": False,
-                "licensed_functionality": None,
+                "licensed_functionality": [],
                 "rules_table": [],
             })
 
@@ -115,23 +114,30 @@ class EdvalPostprocessor:
         # Apply page-based licenses to TOC nodes
         for node in self.toc_nodes:
             if node["page"] in self.revision_licenses:
-                node["separately_licensed"] = True
-                node["licensed_functionality"] = self.revision_licenses[node["page"]]
+                node["licensed_functionality"].append({
+                    "name": self.revision_licenses[node["page"]],
+                    "description": "Found via Revision History pointer."
+                })
 
     def _check_license_in_text(self, text: str, node: dict):
-        match1 = re.search(r"(?i)separately licensed.*?available,\s*([^.]+)", text)
-        match2 = re.search(r"(?i)separately licensed\s+(?:for|by)\s+([A-Za-z0-9_\s]+?)(?:[\.,\n]|$)", text)
+        match1 = re.search(r"(?i)separately licensed.*?available,\s*([^.]+)\s*\.\s*(.*)", text, re.DOTALL)
+        match2 = re.search(r"(?i)separately licensed\s+(?:for|by)\s+([A-Za-z0-9_\s]+?)(?:[\.,\n]|$)\s*(.*)", text, re.DOTALL)
 
         if match1:
-            node["separately_licensed"] = True
-            node["licensed_functionality"] = match1.group(1).strip()
+            node["licensed_functionality"].append({
+                "name": match1.group(1).strip(),
+                "description": match1.group(2).strip()
+            })
         elif match2:
-            node["separately_licensed"] = True
-            node["licensed_functionality"] = match2.group(1).strip()
+            node["licensed_functionality"].append({
+                "name": match2.group(1).strip(),
+                "description": match2.group(2).strip()
+            })
         elif "separately licensed" in text.lower():
-            node["separately_licensed"] = True
-            node["licensed_functionality"] = "Unknown Feature (See Notes)"
-
+            node["licensed_functionality"].append({
+                "name": "Unknown Feature",
+                "description": text.strip()
+            })
     def _process_item(self, item: DocItem):
         text = ""
         if hasattr(item, "text") and item.text:
