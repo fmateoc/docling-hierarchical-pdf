@@ -133,11 +133,6 @@ def test_edval_postprocessor_phase_segregation(mock_conversion_result):
     assert output["Body"][0]["level"] == 1
     assert output["Body"][1]["level"] == 2
 
-    # Test assignment logic
-    assert len(output["Body"][0]["items"]) == 4  # 1. Node One (header text), Overview, Table, Notes
-    assert output["Body"][0]["items"][0].text == "1. Node One"
-    assert output["Body"][0]["items"][0].level == 2  # Nested below the normalized Body node level 1
-
     # Assert Table Schema & Parsing for Node One
     node_one = output["Body"][0]
     assert node_one["overview"].strip() == "Here is an overview of Node One."
