@@ -148,7 +148,10 @@ class ResultPostprocessor:
 
         processed: list[str] = []
         last_len_processed = -1
-        while last_len_processed < len(processed):
+        structure_changed = True
+
+        while last_len_processed < len(processed) or structure_changed:
+            structure_changed = False
             last_len_processed = len(processed)
             for item, _ in self.result.document.iterate_items(with_groups=True):
                 if item.self_ref in processed:
@@ -202,5 +205,6 @@ class ResultPostprocessor:
                         new_parent.children.append(child_ref)
                     else:
                         raise ItemNotRegisteredAsChildException(item)
+                    structure_changed = True
                     break
                 processed.append(item.self_ref)
